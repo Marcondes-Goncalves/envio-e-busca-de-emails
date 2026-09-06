@@ -15,7 +15,7 @@ public class ConfiguracoesEmail {
         
         Properties configuracoesGMAIL = new Properties();
 
-        if (tipoConfig == "enviar") {
+        if (tipoConfig.equals("enviar")) {
 
             // configurações para envio de e-mails via SMTP do Gmail
             configuracoesGMAIL.put("mail.smtp.auth", "true");
@@ -24,7 +24,7 @@ public class ConfiguracoesEmail {
             configuracoesGMAIL.put("mail.smtp.ssl.enable", "true");
             configuracoesGMAIL.put("mail.smtp.ssl.protocols", "TLSv1.2");
             
-        } else if (tipoConfig == "buscarTodosSimples") {
+        } else if (tipoConfig.equals("buscar")) {
 
             // configurações para checagem de e-mails via POP3S (SSL implícito) do Gmail
             configuracoesGMAIL.put("mail.pop3s.host", hostPop3Gmail);
