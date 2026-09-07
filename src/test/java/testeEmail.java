@@ -1,6 +1,8 @@
 import org.junit.jupiter.api.Test;
 
 import com.jakarta.mail.services.EmailService;
+
+import java.nio.file.Path;
 import java.util.List;
 
 public class testeEmail {
@@ -23,7 +25,10 @@ public class testeEmail {
             destinatarios, 
 
             "Assunto de Teste", 
-            "Corpo do e-mail de teste"
+            "Corpo do e-mail de teste",
+            List.of(Path.of("download.pdf"),
+                    Path.of("backtrack-linux-h8.jpg")
+            )
         );
     }
 

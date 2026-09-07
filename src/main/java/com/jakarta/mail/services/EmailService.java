@@ -2,12 +2,14 @@ package com.jakarta.mail.services;
 
 import java.util.List;
 import java.util.Properties;
-import jakarta.mail.Multipart;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import com.jakarta.mail.utils.ConfiguracoesEmail;
 import com.jakarta.mail.utils.Credenciais;
 
-import jakarta.mail.Address;
+import jakarta.mail.Multipart;
 import jakarta.mail.Authenticator;
 import jakarta.mail.BodyPart;
 import jakarta.mail.Folder;
@@ -24,6 +26,8 @@ import jakarta.mail.internet.ContentType;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeUtility;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMultipart;
 
 import java.io.IOException;
 
@@ -69,7 +73,7 @@ public class EmailService {
             inbox.open(Folder.READ_ONLY);
 
             // Obtém a primeira mensagem da pasta INBOX
-            Message mensagens = inbox.getMessage(1);
+            Message mensagens = inbox.getMessage(2);
 
             System.out.println("Remetente: " + mensagens.getFrom()[0]);
             System.out.println("Assunto: " + mensagens.getSubject());
@@ -78,6 +82,7 @@ public class EmailService {
             // Fecha a pasta INBOX e o store
             inbox.close();
             store.close();
+            session = null; // Encerra a sessão explicitamente (opcional)
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -160,12 +165,13 @@ public class EmailService {
     }
 
     /**
-     * Envia um e-mail para os destinatários especificados com o assunto e corpo fornecidos.
+     * Envia um e-mail para os destinatários especificados com o assunto, corpo e anexos fornecidos.
      * @param destinatarios
      * @param assunto
      * @param corpo
+     * @param anexos
      */
-    public void enviarEmail(List<String> destinatarios, String assunto, String corpo) {
+    public void enviarEmail(List<String> destinatarios, String assunto, String corpo, List<Path> anexos) {
 
         try {
 
@@ -186,17 +192,24 @@ public class EmailService {
                 }
             });
 
-            // Lista de endereços de destinatários
-            Address[] enderecos = InternetAddress.parse(String.join(",", destinatarios));
-
-            // Criação da mensagem de e-mail
+             // Criação da mensagem de e-mail
             MimeMessage mensagem = new MimeMessage(session);
 
             // Configuração do remetente, destinatários, assunto e corpo do e-mail
             mensagem.setFrom(new InternetAddress(remetente));
-            mensagem.setRecipients(Message.RecipientType.TO, enderecos);
-            mensagem.setSubject(assunto);
-            mensagem.setText(corpo);
+
+            mensagem.setRecipients(
+                Message.RecipientType.TO, 
+                InternetAddress.parse(String.join(",", destinatarios))
+            );
+            // mensagem.setRecipients(Message.RecipientType.CC, enderecos);
+            // mensagem.setRecipients(Message.RecipientType.BCC, enderecos);
+
+            // Configuração do assunto do e-mail
+            mensagem.setSubject(assunto, "UTF-8");
+
+            // Definindo o conteúdo multipart como o corpo da mensagem e anexos caso existam
+            mensagem.setContent(criarConteudoEmail(corpo, anexos));
 
             // Envio da mensagem de e-mail
             Transport.send(mensagem);
@@ -211,6 +224,36 @@ public class EmailService {
         } catch (MessagingException e) {
             e.printStackTrace();
         }
+    }
+
+
+    // retorna o conteúdo multipart do e-mail (texto + anexos)
+    public Multipart criarConteudoEmail(String corpo, List<Path> anexos) throws MessagingException, IOException {
+
+        Multipart conteudo = new MimeMultipart();
+
+        // Criação da parte do texto do e-mail
+        MimeBodyPart parteTexto = new MimeBodyPart();
+        parteTexto.setText(corpo, "UTF-8");
+
+        conteudo.addBodyPart(parteTexto);
+
+        // Adicionando os anexos ao conteúdo multipart do e-mail
+        if (!anexos.isEmpty()) {
+            
+            for (Path caminhoAnexo : anexos) {
+
+                if (!Files.isRegularFile(caminhoAnexo)) {
+                    throw new IOException("Arquivo de anexo não encontrado: " + caminhoAnexo.toAbsolutePath());
+                }
+
+                MimeBodyPart parteAnexo = new MimeBodyPart();
+                parteAnexo.attachFile(caminhoAnexo.toFile());
+                conteudo.addBodyPart(parteAnexo);
+            }
+        }
+
+        return conteudo;
     }
     
 }
