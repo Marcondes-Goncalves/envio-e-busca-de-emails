@@ -7,8 +7,8 @@ public class ConfiguracoesEmail {
     public static String hostPop3Gmail = "pop.gmail.com";
 
     /**
-     * Retorna as configurações de email do Gmail para envio ou checagem de emails.
-     * @param enviarOuChecar true para envio de emails, false para checagem de emails
+     * Retorna as configurações de email do Gmail para envio ou busca de emails.
+     * @param tipoConfig "enviar" para envio de emails, "buscar" para busca de emails
      * @return as configurações de email do Gmail apropriadas para a operação desejada
      */
     public static Properties getConfiguracoesGMAIL(String tipoConfig) {

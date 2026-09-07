@@ -15,9 +15,9 @@ public class Credenciais {
     public static Properties carregar(String caminhoArquivoCredenciais) throws IOException {
 
         Properties props = new Properties();
-        try (FileInputStream fis = new FileInputStream(caminhoArquivoCredenciais)) {
-            props.load(fis);
-        }
+        FileInputStream fis = new FileInputStream(caminhoArquivoCredenciais);
+        props.load(fis);
+        fis.close();
 
         return props;
     }
